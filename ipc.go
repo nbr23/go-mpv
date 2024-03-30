@@ -50,15 +50,18 @@ type IPCClient struct {
 }
 
 // NewIPCClient creates a new IPCClient connected to the given socket.
-func NewIPCClient(socket string) *IPCClient {
+func NewIPCClient(socket string) (*IPCClient, error) {
 	c := &IPCClient{
 		socket:  socket,
 		timeout: 2 * time.Second,
 		comm:    make(chan *request),
 		reqMap:  make(map[int]*request),
 	}
-	c.run()
-	return c
+	err := c.run()
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
 }
 
 // dispatch dispatches responses to the corresponding request
@@ -77,14 +80,15 @@ func (c *IPCClient) dispatch(resp *Response) {
 	}
 }
 
-func (c *IPCClient) run() {
+func (c *IPCClient) run() error {
 	conn, err := net.Dial("unix", c.socket)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	go c.readloop(conn)
 	go c.writeloop(conn)
 	// TODO: Close connection
+	return nil
 }
 
 func (c *IPCClient) writeloop(conn io.Writer) {
