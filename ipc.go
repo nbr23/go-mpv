@@ -17,6 +17,7 @@ type Response struct {
 	Data      interface{} `json:"data"` // May contain float64, bool or string
 	Event     string      `json:"event"`
 	RequestID int         `json:"request_id"`
+	Name      string      `json:"name"`
 }
 
 // request sent to mpv. Includes request_id for mapping the response.
