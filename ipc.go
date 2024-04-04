@@ -37,6 +37,7 @@ func newRequest(cmd ...interface{}) *request {
 // LLClient is the most low level interface
 type LLClient interface {
 	Exec(command ...interface{}) (*Response, error)
+	RegisterHandler(func(*Response))
 }
 
 // IPCClient is a low-level IPC client to communicate with the mpv player via socket.
@@ -45,8 +46,9 @@ type IPCClient struct {
 	timeout time.Duration
 	comm    chan *request
 
-	mu     sync.Mutex
-	reqMap map[int]*request // Maps RequestIDs to Requests for response association
+	mu           sync.Mutex
+	reqMap       map[int]*request // Maps RequestIDs to Requests for response association
+	eventHandler func(*Response)
 }
 
 // NewIPCClient creates a new IPCClient connected to the given socket.
@@ -76,7 +78,9 @@ func (c *IPCClient) dispatch(resp *Response) {
 		}
 		// Discard response
 	} else { // Event
-		// TODO: Implement Event support
+		if c.eventHandler != nil {
+			c.eventHandler(resp)
+		}
 	}
 }
 
@@ -161,4 +165,8 @@ func (c *IPCClient) Exec(command ...interface{}) (*Response, error) {
 	case <-time.After(c.timeout):
 		return nil, ErrTimeoutRecv
 	}
+}
+
+func (c *IPCClient) RegisterHandler(h func(*Response)) {
+	c.eventHandler = h
 }

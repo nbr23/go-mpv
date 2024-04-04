@@ -184,3 +184,17 @@ func (c *Client) Position() (float64, error) {
 func (c *Client) PercentPosition() (float64, error) {
 	return c.GetFloatProperty("percent-pos")
 }
+
+func (c *Client) ObserveProperty(name string) error {
+	_, err := c.Exec("observe_property", 1, name)
+	return err
+}
+
+func (c *Client) UnobserveProperty(name string) error {
+	_, err := c.Exec("observe_property", 0, name)
+	return err
+}
+
+func (c *Client) RegisterHandler(h func(*Response)) {
+	c.LLClient.RegisterHandler(h)
+}
