@@ -75,7 +75,7 @@ func (c *Client) LoadList(path string, mode string) error {
 // GetProperty reads a property by name and returns the data as a string.
 func (c *Client) GetProperty(name string) (string, error) {
 	res, err := c.Exec("get_property", name)
-	if res == nil {
+	if res == nil || res.Data == nil {
 		return "", err
 	}
 	return fmt.Sprintf("%#v", res.Data), err
